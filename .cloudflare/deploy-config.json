@@ -1,0 +1,19 @@
+{
+  "projectName": "aifi",
+  "accountId": "",
+  "deploymentTrigger": {
+    "type": "github",
+    "repo": {
+      "owner": "dokbun2",
+      "name": "aifi"
+    },
+    "branch": "main"
+  },
+  "buildConfig": {
+    "buildCommand": "",
+    "buildOutputDirectory": "./",
+    "rootDirectory": ""
+  },
+  "productionBranch": "main",
+  "previewBranches": ["*"]
+}

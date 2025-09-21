@@ -1,12 +1,6 @@
 name = "aifi"
 compatibility_date = "2024-09-16"
-
-[site]
-bucket = "./"
-
-[[routes]]
-pattern = "/*"
-zone_name = "aifi.pages.dev"
+pages_build_output_dir = "./"
 
 # Build configuration for Cloudflare Pages
 [build]
