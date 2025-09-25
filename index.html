@@ -821,10 +821,19 @@
             const input = document.getElementById('gemToolPasswordInput');
             const error = document.getElementById('gemToolPasswordError');
 
-            modal.classList.add('show');
+            // 입력 필드 완전 초기화
             input.value = '';
+            input.setAttribute('value', '');
             error.classList.remove('show');
-            input.focus();
+
+            // 모달 표시
+            modal.classList.add('show');
+
+            // 약간의 지연 후 포커스 (모달 애니메이션 완료 후)
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
         }
 
         // 바나나 페이지 열기 함수 (모달 표시)
@@ -836,17 +845,26 @@
             const input = document.getElementById('passwordInput');
             const error = document.getElementById('passwordError');
 
-            modal.classList.add('show');
+            // 입력 필드 완전 초기화
             input.value = '';
+            input.setAttribute('value', '');
             error.classList.remove('show');
-            input.focus();
+
+            // 모달 표시
+            modal.classList.add('show');
+
+            // 약간의 지연 후 포커스
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
         }
         
         // GEM & TOOL 비밀번호 확인 함수
         function checkGemToolPassword() {
             const input = document.getElementById('gemToolPasswordInput');
             const error = document.getElementById('gemToolPasswordError');
-            const password = input.value;
+            const password = input.value.trim(); // trim() 추가로 공백 제거
 
             // 비밀번호 검증
             if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
@@ -857,7 +875,11 @@
                 // 비밀번호가 틀리면 에러 메시지 표시
                 error.classList.add('show');
                 input.value = '';
-                input.focus();
+                input.setAttribute('value', '');
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 100);
             }
         }
 
@@ -876,7 +898,7 @@
         function checkPassword() {
             const input = document.getElementById('passwordInput');
             const error = document.getElementById('passwordError');
-            const password = input.value;
+            const password = input.value.trim(); // trim() 추가로 공백 제거
 
             // 비밀번호 검증
             if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
@@ -887,7 +909,11 @@
                 // 비밀번호가 틀리면 에러 메시지 표시
                 error.classList.add('show');
                 input.value = '';
-                input.focus();
+                input.setAttribute('value', '');
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 100);
             }
         }
         

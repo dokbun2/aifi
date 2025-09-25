@@ -441,7 +441,7 @@
         function checkAuth() {
             const input = document.getElementById('authInput');
             const error = document.getElementById('authError');
-            const password = input.value;
+            const password = input.value.trim(); // trim() 추가로 공백 제거
 
             // config.js의 비밀번호 확인
             if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
@@ -455,7 +455,11 @@
                 // 비밀번호 오류
                 error.classList.add('show');
                 input.value = '';
-                input.focus();
+                input.setAttribute('value', '');
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 100);
             }
         }
 
