@@ -182,7 +182,7 @@
             </a>
             <ul class="nav-menu">
                 <li><a href="#features" class="nav-link">영상제작</a></li>
-                <li><a href="#stage-tools" class="nav-link">GEM & TOOL</a></li>
+                <li><a href="#" onclick="openGemToolPage(event)" class="nav-link">GEM & TOOL</a></li>
                 <li><a href="https://aifi-guide.pages.dev/" target="_blank" rel="noopener noreferrer" class="nav-link">MANUAL</a></li>
                 <li><a href="https://cafe.naver.com/f-e/cafes/31511526/menus/90?viewType=L" target="_blank" rel="noopener noreferrer" class="nav-link">FAQ</a></li>
             </ul>
@@ -437,8 +437,8 @@
         </div>
     </section>
 
-    <!-- STAGE Tools Section -->
-    <section class="tools-section" id="stage-tools">
+    <!-- STAGE Tools Section (Hidden - moved to separate page) -->
+    <section class="tools-section" id="stage-tools" style="display: none;">
         <div class="tools-container">
             <div class="tools-header">
                 <h2 style="font-size: 35px !important; font-weight: 600; color: #007AFF; margin-bottom: 10px;" class="tools-title">GEMINI STAGE</h2>
@@ -626,6 +626,31 @@
         </div>
     </section>
 
+    <!-- GEM & TOOL Password Modal -->
+    <div id="gemToolPasswordModal" class="password-modal">
+        <div class="password-modal-content">
+            <h3>🔒 GEM & TOOL</h3>
+            <p>페이지에 접근하려면 비밀번호를 입력하세요</p>
+
+            <div class="password-input-wrapper">
+                <input type="password"
+                       id="gemToolPasswordInput"
+                       class="password-input"
+                       placeholder="비밀번호 입력"
+                       autocomplete="off">
+            </div>
+
+            <div class="password-error" id="gemToolPasswordError">
+                비밀번호가 올바르지 않습니다
+            </div>
+
+            <div class="password-modal-buttons">
+                <button onclick="checkGemToolPassword()" class="password-modal-btn password-modal-btn-confirm">확인</button>
+                <button onclick="closeGemToolPasswordModal()" class="password-modal-btn password-modal-btn-cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Sequential Upload Modal -->
     <div id="sequential-upload-modal" class="sequential-upload-modal">
         <div class="modal-overlay" onclick="closeSequentialUploadModal()"></div>
@@ -787,27 +812,72 @@
     <!-- Scripts -->
     <script src="script.js"></script>
     <script>
+        // GEM & TOOL 페이지 열기 함수
+        function openGemToolPage(event) {
+            event.preventDefault();
+
+            // 비밀번호 모달 표시
+            const modal = document.getElementById('gemToolPasswordModal');
+            const input = document.getElementById('gemToolPasswordInput');
+            const error = document.getElementById('gemToolPasswordError');
+
+            modal.classList.add('show');
+            input.value = '';
+            error.classList.remove('show');
+            input.focus();
+        }
+
         // 바나나 페이지 열기 함수 (모달 표시)
         function openBananaPage(event) {
             event.preventDefault();
-            
+
             // 모달 표시
             const modal = document.getElementById('passwordModal');
             const input = document.getElementById('passwordInput');
             const error = document.getElementById('passwordError');
-            
+
             modal.classList.add('show');
             input.value = '';
             error.classList.remove('show');
             input.focus();
         }
         
+        // GEM & TOOL 비밀번호 확인 함수
+        function checkGemToolPassword() {
+            const input = document.getElementById('gemToolPasswordInput');
+            const error = document.getElementById('gemToolPasswordError');
+            const password = input.value;
+
+            // 비밀번호 검증
+            if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
+                // 비밀번호가 맞으면 모달 닫고 GEM & TOOL 페이지로 이동
+                closeGemToolPasswordModal();
+                window.location.href = 'gem-tool/index.html';
+            } else {
+                // 비밀번호가 틀리면 에러 메시지 표시
+                error.classList.add('show');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // GEM & TOOL 모달 닫기 함수
+        function closeGemToolPasswordModal() {
+            const modal = document.getElementById('gemToolPasswordModal');
+            const input = document.getElementById('gemToolPasswordInput');
+            const error = document.getElementById('gemToolPasswordError');
+
+            modal.classList.remove('show');
+            input.value = '';
+            error.classList.remove('show');
+        }
+
         // 비밀번호 확인 함수
         function checkPassword() {
             const input = document.getElementById('passwordInput');
             const error = document.getElementById('passwordError');
             const password = input.value;
-            
+
             // 비밀번호 검증
             if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
                 // 비밀번호가 맞으면 모달 닫고 새 탭에서 페이지 열기
@@ -842,6 +912,16 @@
                     }
                 });
             }
+
+            // GEM & TOOL 모달 Enter 키 처리
+            const gemToolPasswordInput = document.getElementById('gemToolPasswordInput');
+            if (gemToolPasswordInput) {
+                gemToolPasswordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkGemToolPassword();
+                    }
+                });
+            }
             
             // 모달 외부 클릭으로 닫기
             const modal = document.getElementById('passwordModal');
@@ -849,6 +929,16 @@
                 modal.addEventListener('click', function(e) {
                     if (e.target === modal) {
                         closePasswordModal();
+                    }
+                });
+            }
+
+            // GEM & TOOL 모달 외부 클릭으로 닫기
+            const gemToolModal = document.getElementById('gemToolPasswordModal');
+            if (gemToolModal) {
+                gemToolModal.addEventListener('click', function(e) {
+                    if (e.target === gemToolModal) {
+                        closeGemToolPasswordModal();
                     }
                 });
             }

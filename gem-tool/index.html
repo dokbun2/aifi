@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEM & TOOL - AIFI</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+
+    <!-- Main style import -->
+    <link rel="stylesheet" href="../apple-developer-style.css">
+
+    <style>
+        /* GEM & TOOL 페이지 전용 스타일 */
+        body {
+            background: #000;
+            min-height: 100vh;
+            padding-top: 48px; /* 네비게이션 높이 */
+        }
+
+        /* tools-section 스타일 오버라이드 */
+        .tools-section {
+            padding-top: 0px !important;
+            min-height: auto !important;
+        }
+
+        .main-container {
+            padding-top: 20px;
+        }
+
+        /* Tool Icons */
+        .tool-icon-chat::before { content: "💬"; }
+        .tool-icon-youtube::before { content: "📺"; }
+        .tool-icon-music::before { content: "🎵"; }
+        .tool-icon-midjourney::before { content: "🎨"; }
+        .tool-icon-suno::before { content: "🎶"; }
+        .tool-icon-prompt-builder::before { content: "🛠️"; }
+        .tool-icon-frame::before { content: "🎬"; }
+        .tool-icon-translator::before { content: "🌐"; }
+        .tool-icon-json::before { content: "📋"; }
+
+        /* 뒤로가기 버튼 */
+        .back-button {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(-5px);
+        }
+
+        /* 비밀번호 인증 모달 */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-modal.show {
+            display: flex;
+        }
+
+        .auth-modal-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-modal h3 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .auth-modal p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #007AFF;
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .auth-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn-confirm {
+            background: linear-gradient(135deg, #007AFF, #0051D5);
+            color: white;
+        }
+
+        .auth-btn-confirm:hover {
+            background: linear-gradient(135deg, #0051D5, #003FA3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.4);
+        }
+
+        .auth-btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-error {
+            color: #ff6b35;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        /* 컨텐츠 숨김 */
+        .protected-content {
+            display: none;
+        }
+
+        .protected-content.authenticated {
+            display: block;
+        }
+    </style>
+
+    <!-- Tabler Icons Library -->
+    <script src="../tabler-icons.js"></script>
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="apple-nav">
+        <div class="nav-content">
+            <a href="../index.html" class="nav-brand" style="display: flex; align-items: center; gap: 8px;">
+                <img src="../favicon_io/favicon-32x32.png" alt="AIFI Logo" width="24" height="24" style="display: inline-block;">
+                AIFI FRAME WORK
+            </a>
+            <ul class="nav-menu">
+                <li><a href="../index.html#features" class="nav-link">영상제작</a></li>
+                <li><a href="#" class="nav-link active">GEM & TOOL</a></li>
+                <li><a href="https://aifi-guide.pages.dev/" target="_blank" rel="noopener noreferrer" class="nav-link">MANUAL</a></li>
+                <li><a href="https://cafe.naver.com/f-e/cafes/31511526/menus/90?viewType=L" target="_blank" rel="noopener noreferrer" class="nav-link">FAQ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 뒤로가기 버튼 -->
+    <a href="../index.html" class="back-button">
+        <i data-tabler-icon="arrow-left"></i>
+        메인으로
+    </a>
+
+    <!-- 인증 모달 -->
+    <div id="authModal" class="auth-modal show">
+        <div class="auth-modal-content">
+            <h3>🔒 비밀번호 입력</h3>
+            <p>GEM & TOOL 페이지에 접근하려면 비밀번호를 입력하세요</p>
+
+            <input type="password"
+                   id="authInput"
+                   class="auth-input"
+                   placeholder="비밀번호를 입력하세요"
+                   autocomplete="off">
+
+            <div class="auth-error" id="authError">
+                비밀번호가 올바르지 않습니다
+            </div>
+
+            <div class="auth-buttons">
+                <button onclick="checkAuth()" class="auth-btn auth-btn-confirm">확인</button>
+                <button onclick="goBack()" class="auth-btn auth-btn-cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 보호된 컨텐츠 -->
+    <div class="protected-content" id="protectedContent">
+        <!-- Hero Section (제거됨) -->
+
+        <!-- Main Content -->
+        <div class="main-container">
+            <!-- GEMINI STAGE Section -->
+            <section class="tools-section">
+                <div class="tools-container">
+                    <div class="tools-header">
+                        <h2 style="font-size: 35px !important; font-weight: 600; color: #007AFF; margin-bottom: 10px;" class="tools-title">GEMINI STAGE</h2>
+                        <p style="font-size: 20px !important; font-weight: 600; color: #4e5965; margin-bottom: 10px;">GEMINI로 이동해서 영상 및 CF를 제작하세요</p>
+                    </div>
+
+                    <!-- 영화 스테이지 -->
+                    <div style="width: 100%; margin-bottom: 20px;">
+                        <div class="tool-category" style="max-width: 100%; width: 100%;">
+                            <h3 style="font-size: 20px !important; font-weight: 600; color: #007AFF; margin-bottom: 20px;">영화 스테이지</h3>
+                            <div class="tool-items" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                                <a href="https://gemini.google.com/gem/1rLyrldgqbpVaIzHZQs2E28EnOQtU0mba?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 1</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1ImY3RqnauOVV2RWCrfdQVj93Qk4A5Iuo?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 2</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1Vpbp_vi-I2nlGHJauWPdj2E7rZ4kpZmf?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 3</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/13_KlralMyeJj1s-HCmBTWtY3lRXWg-Ft?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스페이지 4</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1nHY7RQTzgrCOaMmmPrpWUsH3D-cyie3G?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 5</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1XiaBVDzWiQLLv3vHK_zYj5jpS0MclLSy?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 6</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1kH08ecVz-GFUf_yfNBTQvn5tBbISmriS?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 7</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1pBTZrta8k4IUoGc57Zalx1R8P5pJqnrz?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>영화_스테이지 8</h4>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CF 스테이지 -->
+                    <div style="width: 100%;">
+                        <div class="tool-category" style="max-width: 100%; width: 100%;">
+                            <h3 style="font-size: 20px !important; font-weight: 600; color: #007AFF; margin-bottom: 20px;">CF 스테이지</h3>
+                            <div class="tool-items" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                                <a href="https://gemini.google.com/gem/1k88Zt7SbHhT4xBsGV7mAu0giS8T2dGkw?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>CF_스테이지 1</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1FuN38oBwGOqooWyxKnc8dzPoYKtXPxhS?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>CF_스테이지 2</h4>
+                                    </div>
+                                </a>
+                                <a href="https://gemini.google.com/gem/1k7JkR6o3Q1d1pEt-gytCG3LXEJkhre2U?usp=sharing" target="_blank" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>CF_스테이지 5</h4>
+                                    </div>
+                                </a>
+                                <div style="visibility: hidden;" class="tool-item">
+                                    <div class="tool-info">
+                                        <h4>&nbsp;</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOOL 섹션 통합 -->
+                    <div class="tools-header" style="margin-top: 20px;">
+                        <h2 class="tools-title">AIFI TOOL 바로가기</h2>
+                    </div>
+
+                    <div class="tools-grid">
+                        <!-- Community Tools -->
+                        <div class="tool-category">
+                            <h3 class="tool-category-title">커뮤니티</h3>
+                            <div class="tool-items">
+                                <a href="https://cafe.naver.com/aifi" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-chat"></span>
+                                    <div class="tool-info">
+                                        <h4>AIFI 네이버카페</h4>
+                                        <p>커뮤니티 & 지원</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://www.youtube.com/@AiFi79" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-youtube"></span>
+                                    <div class="tool-info">
+                                        <h4>AIFI 유튜브</h4>
+                                        <p>튜토리얼 & 가이드</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- AI Tools -->
+                        <div class="tool-category">
+                            <h3 class="tool-category-title">AI 도구</h3>
+                            <div class="tool-items">
+                                <a href="https://chatgpt.com/g/g-67b6834763f48191a1835094c4ffa350-potori-myujig" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-music"></span>
+                                    <div class="tool-info">
+                                        <h4>포토리뮤직</h4>
+                                        <p>AI 음악 생성</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://www.midjourney.com/home" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-midjourney"></span>
+                                    <div class="tool-info">
+                                        <h4>미드저니</h4>
+                                        <p>바로가기</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://suno.com/" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-suno"></span>
+                                    <div class="tool-info">
+                                        <h4>음악만들기</h4>
+                                        <p>SUNO AI</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Development Tools -->
+                        <div class="tool-category">
+                            <h3 class="tool-category-title">유용한툴</h3>
+                            <div class="tool-items">
+                                <a href="https://midstudy.netlify.app/" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-prompt-builder"></span>
+                                    <div class="tool-info">
+                                        <h4>프롬프트 빌더</h4>
+                                        <p>미드저니 SREF</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://aififrame.netlify.app/" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-frame"></span>
+                                    <div class="tool-info">
+                                        <h4>프레임 추출기</h4>
+                                        <p>비디오 프레임 추출</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://www.deepl.com/ko/translator" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-translator"></span>
+                                    <div class="tool-info">
+                                        <h4>번역 프로그램</h4>
+                                        <p>DeepL</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                                <a href="https://jsoneditor-jade.vercel.app/" target="_blank" class="tool-item">
+                                    <span class="tool-icon tool-icon-json"></span>
+                                    <div class="tool-info">
+                                        <h4>JSON 에디터</h4>
+                                        <p>데이터 편집 도구</p>
+                                    </div>
+                                    <span class="tool-arrow">→</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer style="background: #000; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 80px;">
+            <div style="max-width: 1440px; margin: 0 auto; padding: 0 22px; text-align: center;">
+                <p style="color: #86868b; font-size: 12px; margin: 0;">
+                    © 2025 AIFI Project. AI 기반 창작 도구 플랫폼.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 비밀번호 확인 함수
+        function checkAuth() {
+            const input = document.getElementById('authInput');
+            const error = document.getElementById('authError');
+            const password = input.value;
+
+            // config.js의 비밀번호 확인
+            if (window.AIFI_CONFIG && window.AIFI_CONFIG.validateBananaPassword(password)) {
+                // 인증 성공
+                document.getElementById('authModal').classList.remove('show');
+                document.getElementById('protectedContent').classList.add('authenticated');
+
+                // 세션 저장 (선택사항)
+                sessionStorage.setItem('gemToolAuth', 'true');
+            } else {
+                // 비밀번호 오류
+                error.classList.add('show');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // 취소 버튼 - 메인 페이지로
+        function goBack() {
+            window.location.href = '../index.html';
+        }
+
+        // Enter 키 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            // 세션 확인 (이미 인증된 경우)
+            if (sessionStorage.getItem('gemToolAuth') === 'true') {
+                document.getElementById('authModal').classList.remove('show');
+                document.getElementById('protectedContent').classList.add('authenticated');
+            }
+
+            const authInput = document.getElementById('authInput');
+            authInput.focus();
+
+            authInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAuth();
+                }
+            });
+
+            // Tabler 아이콘 초기화
+            if (typeof tabler !== 'undefined') {
+                tabler.replace();
+            }
+        });
+    </script>
+</body>
+</html>
